@@ -8,6 +8,28 @@ import plotly.express as px
 # ----------------------------------------------------------------------------
 st.set_page_config(page_title="EduPro Learner Intelligence", page_icon="🎓", layout="wide")
 
+# Subtle fade-in animation applied to all main content when a page loads or updates
+st.markdown(
+    """
+    <style>
+    .main .block-container {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    div[data-testid="stMetric"] {
+        transition: transform 0.2s ease;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: scale(1.03);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ----------------------------------------------------------------------------
 # LOAD SAVED ARTIFACTS (cached so they only load once)
 # ----------------------------------------------------------------------------
@@ -133,12 +155,16 @@ elif page == "Cluster Dashboard":
     ).round(2)
     st.dataframe(summary, use_container_width=True)
 
-    st.subheader("Spending vs Engagement by Segment")
-    fig_scatter = px.scatter(
-        learner, x="TotalCoursesEnrolled", y="AvgSpending", color="SegmentName",
-        hover_data=["UserID"], title="Courses Enrolled vs Avg Spending"
+    st.subheader("Learner Segments in 3D")
+    st.caption("Drag to rotate, scroll to zoom — each point is one learner.")
+    fig_3d = px.scatter_3d(
+        learner, x="TotalCoursesEnrolled", y="AvgSpending", z="DiversityScore",
+        color="SegmentName", hover_data=["UserID"],
+        title="Courses Enrolled vs Spending vs Category Diversity"
     )
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    fig_3d.update_traces(marker=dict(size=4))
+    fig_3d.update_layout(height=600)
+    st.plotly_chart(fig_3d, use_container_width=True)
 
 # ----------------------------------------------------------------------------
 # PAGE 3: PERSONALIZED RECOMMENDATIONS
@@ -160,12 +186,14 @@ elif page == "Recommendations":
 
     top_n = st.slider("Number of recommendations", 1, 10, 5)
 
-    recs = recommend_courses(user_id, top_n=top_n, category_filter=category_filter, level_filter=level_filter)
+    if st.button("✨ Generate Recommendations", type="primary"):
+        recs = recommend_courses(user_id, top_n=top_n, category_filter=category_filter, level_filter=level_filter)
 
-    if recs.empty:
-        st.warning("No matching courses found for these filters. Try widening the category/level filter.")
-    else:
-        st.dataframe(recs, use_container_width=True)
+        if recs.empty:
+            st.warning("No matching courses found for these filters. Try widening the category/level filter.")
+        else:
+            st.balloons()
+            st.dataframe(recs, use_container_width=True)
 
 # ----------------------------------------------------------------------------
 # PAGE 4: SEGMENT COMPARISON PANEL
