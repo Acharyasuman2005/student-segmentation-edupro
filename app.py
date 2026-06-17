@@ -3,6 +3,9 @@ import pandas as pd
 import joblib
 import plotly.express as px
 
+# Shared chart settings — keeps hover/zoom toolbar hidden so charts feel calm, not cluttered
+PLOTLY_CONFIG = {"displayModeBar": False, "scrollZoom": False}
+
 # ----------------------------------------------------------------------------
 # PAGE CONFIG
 # ----------------------------------------------------------------------------
@@ -138,11 +141,14 @@ elif page == "Cluster Dashboard":
 
     col1, col2 = st.columns(2)
     with col1:
-        fig_pie = px.pie(cluster_sizes, names="Segment", values="Count", title="Segment Sizes")
-        st.plotly_chart(fig_pie, use_container_width=True)
+        fig_pie = px.pie(cluster_sizes, names="Segment", values="Count", title="Segment Sizes", template="plotly_white")
+        fig_pie.update_traces(hovertemplate="%{label}: %{value} learners")
+        st.plotly_chart(fig_pie, use_container_width=True, config=PLOTLY_CONFIG)
     with col2:
-        fig_bar = px.bar(cluster_sizes, x="Segment", y="Count", title="Segment Sizes (Bar)")
-        st.plotly_chart(fig_bar, use_container_width=True)
+        fig_bar = px.bar(cluster_sizes, x="Segment", y="Count", title="Segment Sizes (Bar)", template="plotly_white")
+        fig_bar.update_traces(hovertemplate="%{x}: %{y} learners")
+        fig_bar.update_layout(hovermode="closest")
+        st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CONFIG)
 
     st.subheader("Segment Behavior Summary")
     summary = learner.groupby("SegmentName").agg(
@@ -160,11 +166,15 @@ elif page == "Cluster Dashboard":
     fig_3d = px.scatter_3d(
         learner, x="TotalCoursesEnrolled", y="AvgSpending", z="DiversityScore",
         color="SegmentName", hover_data=["UserID"],
-        title="Courses Enrolled vs Spending vs Category Diversity"
+        title="Courses Enrolled vs Spending vs Category Diversity",
+        template="plotly_white"
     )
-    fig_3d.update_traces(marker=dict(size=4))
-    fig_3d.update_layout(height=600)
-    st.plotly_chart(fig_3d, use_container_width=True)
+    fig_3d.update_traces(marker=dict(size=3, opacity=0.8))
+    fig_3d.update_scenes(
+        xaxis_showspikes=False, yaxis_showspikes=False, zaxis_showspikes=False
+    )
+    fig_3d.update_layout(height=600, margin=dict(l=0, r=0, t=40, b=0))
+    st.plotly_chart(fig_3d, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ----------------------------------------------------------------------------
 # PAGE 3: PERSONALIZED RECOMMENDATIONS
@@ -221,6 +231,8 @@ elif page == "Segment Comparison":
     fig = px.bar(
         compare_subset.reset_index().melt(id_vars="index", var_name="Segment", value_name="Value"),
         x="index", y="Value", color="Segment", barmode="group",
-        title="Metric-by-Metric Comparison", labels={"index": "Metric"}
+        title="Metric-by-Metric Comparison", labels={"index": "Metric"},
+        template="plotly_white"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(hovermode="closest")
+    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
