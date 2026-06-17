@@ -6,7 +6,7 @@ import plotly.express as px
 # ----------------------------------------------------------------------------
 # PAGE CONFIG
 # ----------------------------------------------------------------------------
-st.set_page_config(page_title="EduPro Learner Intelligence", layout="wide")
+st.set_page_config(page_title="EduPro Learner Intelligence", page_icon="🎓", layout="wide")
 
 # ----------------------------------------------------------------------------
 # LOAD SAVED ARTIFACTS (cached so they only load once)
@@ -67,18 +67,24 @@ def recommend_courses(user_id, top_n=5, category_filter=None, level_filter=None)
 # ----------------------------------------------------------------------------
 # SIDEBAR NAVIGATION
 # ----------------------------------------------------------------------------
-st.sidebar.title("EduPro Dashboard")
+st.sidebar.markdown("## 🎓 EduPro Dashboard")
+st.sidebar.caption("Learner Segmentation & Personalized Recommendations")
+st.sidebar.divider()
 page = st.sidebar.radio(
-    "Go to",
+    "Navigate",
     ["Learner Profile Explorer", "Cluster Dashboard", "Recommendations", "Segment Comparison"],
 )
+st.sidebar.divider()
+st.sidebar.caption(f"Total learners analyzed: **{len(learner)}**")
+st.sidebar.caption(f"Segments identified: **{learner['SegmentName'].nunique()}**")
 
 # ----------------------------------------------------------------------------
 # PAGE 1: LEARNER PROFILE EXPLORER
 # ----------------------------------------------------------------------------
 if page == "Learner Profile Explorer":
-    st.title("Learner Profile Explorer")
+    st.title("👤 Learner Profile Explorer")
     st.write("Select a learner to see their full behavioral profile and assigned segment.")
+    st.divider()
 
     user_id = st.selectbox("Select Learner (UserID)", learner["UserID"].sort_values())
     profile = learner[learner["UserID"] == user_id].iloc[0]
@@ -101,8 +107,9 @@ if page == "Learner Profile Explorer":
 # PAGE 2: CLUSTER VISUALIZATION DASHBOARD
 # ----------------------------------------------------------------------------
 elif page == "Cluster Dashboard":
-    st.title("Cluster Visualization Dashboard")
+    st.title("📊 Cluster Visualization Dashboard")
     st.write("Overview of all learner segments discovered through K-Means clustering.")
+    st.divider()
 
     cluster_sizes = learner["SegmentName"].value_counts().reset_index()
     cluster_sizes.columns = ["Segment", "Count"]
@@ -137,8 +144,9 @@ elif page == "Cluster Dashboard":
 # PAGE 3: PERSONALIZED RECOMMENDATIONS
 # ----------------------------------------------------------------------------
 elif page == "Recommendations":
-    st.title("Personalized Course Recommendations")
+    st.title("🎯 Personalized Course Recommendations")
     st.write("Get course recommendations tailored to a learner's segment, filterable by category or level.")
+    st.divider()
 
     user_id = st.selectbox("Select Learner (UserID)", learner["UserID"].sort_values(), key="rec_user")
     segment = learner.loc[learner["UserID"] == user_id, "SegmentName"].values[0]
@@ -163,8 +171,9 @@ elif page == "Recommendations":
 # PAGE 4: SEGMENT COMPARISON PANEL
 # ----------------------------------------------------------------------------
 elif page == "Segment Comparison":
-    st.title("Segment Comparison Panel")
+    st.title("⚖️ Segment Comparison Panel")
     st.write("Compare two learner segments side by side.")
+    st.divider()
 
     segments = sorted(learner["SegmentName"].unique())
     col1, col2 = st.columns(2)
